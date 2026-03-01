@@ -1,0 +1,29 @@
+# Core FastAPI dependencies
+fastapi==0.125.0
+uvicorn==0.38.0
+pydantic==2.12.5
+
+# Database
+SQLAlchemy==2.0.45
+
+# Machine Learning
+scikit-learn==1.6.1
+imbalanced-learn==0.12.4
+joblib==1.5.3
+
+# Data Processing
+pandas==2.3.3
+numpy==2.0.2
+
+# Visualization
+matplotlib==3.9.4
+seaborn==0.13.2
+
+# Testing
+pytest==8.3.4
+pytest-cov==6.0.0
+
+# Authentication (for Phase 3)
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-multipart==0.0.20
