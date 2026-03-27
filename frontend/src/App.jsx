@@ -1,15 +1,7 @@
 /**
  * Fraud Detection Application - Integrated Version
  * =================================================
- * Combines authentication system with full fraud detection UI
- *
- * Features:
- * - JWT Authentication (login/logout)
- * - Role-based access control (admin/analyst)
- * - Complete fraud detection interface (transaction form, results, history)
- * - Admin dashboard for system management
- * - Protected routes
- * - Public pages: Home, About, Contact
+ * Dark blue theme consistent with Home page
  */
 
 import { useState, useEffect } from 'react';
@@ -92,8 +84,8 @@ const ProtectedRoute = ({ children, adminOnly = false }) => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400"></div>
       </div>
     );
   }
@@ -130,8 +122,8 @@ const NavBar = () => {
         to={to}
         className={`inline-flex items-center px-1 pt-1 text-sm font-medium border-b-2 transition-colors ${
           active
-            ? 'border-indigo-500 text-indigo-600'
-            : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-indigo-300'
+            ? 'border-blue-400 text-blue-300'
+            : 'border-transparent text-white/60 hover:text-white hover:border-blue-400/50'
         }`}
       >
         {label}
@@ -140,32 +132,30 @@ const NavBar = () => {
   };
 
   return (
-    <nav className="bg-white shadow-sm border-b sticky top-0 z-50">
+    <nav className="bg-slate-900/95 backdrop-blur-sm border-b border-white/10 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
 
           {/* Left — Logo + public links + protected links */}
           <div className="flex items-center gap-8">
             <Link to="/" className="flex items-center gap-2 flex-shrink-0">
-              <Shield className="h-7 w-7 text-indigo-600" />
-              <span className="text-lg font-bold text-gray-900">Fraud Detection</span>
+              <Shield className="h-7 w-7 text-blue-400" />
+              <span className="text-lg font-bold text-white">Fraud Detection</span>
             </Link>
 
             <div className="hidden sm:flex sm:items-center sm:gap-6 h-16">
-              {/* Always visible */}
               {navLink('/', 'Home')}
               {navLink('/about', 'About')}
               {navLink('/contact', 'Contact')}
 
-              {/* Only visible when logged in */}
               {user && (
                 <>
                   <Link
                     to="/dashboard"
                     className={`inline-flex items-center gap-1 px-1 pt-1 text-sm font-medium border-b-2 transition-colors ${
                       location.pathname === '/dashboard'
-                        ? 'border-indigo-500 text-indigo-600'
-                        : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-indigo-300'
+                        ? 'border-blue-400 text-blue-300'
+                        : 'border-transparent text-white/60 hover:text-white hover:border-blue-400/50'
                     }`}
                   >
                     <Home className="h-4 w-4" />
@@ -176,8 +166,8 @@ const NavBar = () => {
                       to="/admin"
                       className={`inline-flex items-center gap-1 px-1 pt-1 text-sm font-medium border-b-2 transition-colors ${
                         location.pathname === '/admin'
-                          ? 'border-indigo-500 text-indigo-600'
-                          : 'border-transparent text-gray-600 hover:text-gray-900 hover:border-indigo-300'
+                          ? 'border-blue-400 text-blue-300'
+                          : 'border-transparent text-white/60 hover:text-white hover:border-blue-400/50'
                       }`}
                     >
                       <Users className="h-4 w-4" />
@@ -193,19 +183,19 @@ const NavBar = () => {
           <div className="flex items-center gap-3">
             {user ? (
               <>
-                <span className="text-sm text-gray-700">
-                  <span className="font-medium">{user.username}</span>
+                <span className="text-sm text-white/80">
+                  <span className="font-medium text-white">{user.username}</span>
                   <span className={`ml-2 px-2 py-0.5 text-xs rounded-full ${
                     user.role === 'admin'
-                      ? 'bg-orange-100 text-orange-800'
-                      : 'bg-blue-100 text-blue-800'
+                      ? 'bg-orange-500/20 text-orange-300 border border-orange-500/30'
+                      : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
                   }`}>
                     {user.role}
                   </span>
                 </span>
                 <button
                   onClick={handleLogout}
-                  className="inline-flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+                  className="inline-flex items-center gap-2 px-3 py-2 border border-white/20 rounded-md text-sm font-medium text-white/80 bg-white/5 hover:bg-white/10 transition-colors"
                 >
                   <LogOut className="h-4 w-4" />
                   Logout
@@ -214,7 +204,7 @@ const NavBar = () => {
             ) : (
               <Link
                 to="/login"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-md transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm font-semibold rounded-md transition-colors"
               >
                 Login
               </Link>
@@ -286,16 +276,16 @@ const SimplifiedTransactionForm = ({ onPredict, options }) => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
-      <h2 className="text-2xl font-bold mb-4 text-gray-800 flex items-center gap-2">
-        <Shield className="w-6 h-6 text-blue-600" />
+    <div className="bg-white/5 border border-white/10 rounded-xl p-6">
+      <h2 className="text-2xl font-bold mb-4 text-white flex items-center gap-2">
+        <Shield className="w-6 h-6 text-blue-400" />
         Test Transaction
       </h2>
 
       {/* Quick Test Scenarios */}
       <div className="mb-6">
-        <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-          <Zap className="w-4 h-4 text-yellow-500" />
+        <h3 className="text-sm font-semibold text-white/70 mb-3 flex items-center gap-2">
+          <Zap className="w-4 h-4 text-yellow-400" />
           Quick Test Scenarios
         </h3>
         <div className="grid grid-cols-2 gap-3">
@@ -303,20 +293,20 @@ const SimplifiedTransactionForm = ({ onPredict, options }) => {
             <button
               key={index}
               onClick={() => loadScenario(scenario)}
-              className={`p-3 rounded-lg border-2 text-left transition-all hover:shadow-md ${
+              className={`p-3 rounded-lg border text-left transition-all hover:shadow-md ${
                 scenario.expected === 'fraud'
-                  ? 'border-red-300 bg-red-50 hover:bg-red-100'
+                  ? 'border-red-500/30 bg-red-500/10 hover:bg-red-500/20'
                   : scenario.expected === 'medium_risk'
-                  ? 'border-orange-300 bg-orange-50 hover:bg-orange-100'
-                  : 'border-green-300 bg-green-50 hover:bg-green-100'
+                  ? 'border-orange-500/30 bg-orange-500/10 hover:bg-orange-500/20'
+                  : 'border-green-500/30 bg-green-500/10 hover:bg-green-500/20'
               }`}
             >
-              <div className="font-semibold text-sm">{scenario.name}</div>
-              <div className="text-xs text-gray-600 mt-1">{scenario.description}</div>
+              <div className="font-semibold text-sm text-white">{scenario.name}</div>
+              <div className="text-xs text-white/50 mt-1">{scenario.description}</div>
               <div className={`text-xs font-bold mt-2 ${
-                scenario.expected === 'fraud' ? 'text-red-600' :
-                scenario.expected === 'medium_risk' ? 'text-orange-600' :
-                'text-green-600'
+                scenario.expected === 'fraud' ? 'text-red-400' :
+                scenario.expected === 'medium_risk' ? 'text-orange-400' :
+                'text-green-400'
               }`}>
                 Expected: {scenario.expected === 'fraud' ? '🚨 FRAUD' :
                           scenario.expected === 'medium_risk' ? '⚠️ MEDIUM' :
@@ -327,54 +317,53 @@ const SimplifiedTransactionForm = ({ onPredict, options }) => {
         </div>
       </div>
 
-      {/* Essential Fields Only */}
+      {/* Essential Fields */}
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Amount ($)</label>
+            <label className="block text-sm font-medium text-white/70 mb-1">Amount ($)</label>
             <input
               type="number"
               step="0.01"
               value={formData.transaction_amount}
               onChange={(e) => updateField('transaction_amount', parseFloat(e.target.value) || 0)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 text-lg font-semibold"
+              className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-md text-white placeholder-white/30 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg font-semibold"
             />
           </div>
-
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Merchant</label>
+            <label className="block text-sm font-medium text-white/70 mb-1">Merchant</label>
             <input
               type="text"
               value={formData.merchant_name}
               onChange={(e) => updateField('merchant_name', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-md text-white placeholder-white/30 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
         </div>
 
-        {/* Key Risk Indicators */}
-        <div className="bg-purple-50 p-4 rounded-lg">
-          <h3 className="font-semibold text-purple-900 mb-3 text-sm">Risk Indicators</h3>
+        {/* Risk Indicators */}
+        <div className="bg-blue-500/10 border border-blue-500/20 p-4 rounded-lg">
+          <h3 className="font-semibold text-blue-300 mb-3 text-sm">Risk Indicators</h3>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs text-gray-600 mb-1">Distance (miles)</label>
+              <label className="block text-xs text-white/50 mb-1">Distance (miles)</label>
               <input
                 type="number"
                 value={formData.distance_from_home}
                 onChange={(e) => updateField('distance_from_home', parseFloat(e.target.value) || 0)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500"
+                className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-md text-white placeholder-white/30 focus:ring-2 focus:ring-blue-500"
                 placeholder="0 = local"
               />
             </div>
             <div>
-              <label className="block text-xs text-gray-600 mb-1">Hour (0-23)</label>
+              <label className="block text-xs text-white/50 mb-1">Hour (0-23)</label>
               <input
                 type="number"
                 min="0"
                 max="23"
                 value={formData.transaction_hour}
                 onChange={(e) => updateField('transaction_hour', parseInt(e.target.value) || 0)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500"
+                className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-md text-white placeholder-white/30 focus:ring-2 focus:ring-blue-500"
                 placeholder="14 = 2 PM"
               />
             </div>
@@ -386,49 +375,49 @@ const SimplifiedTransactionForm = ({ onPredict, options }) => {
                 type="checkbox"
                 checked={formData.is_international}
                 onChange={(e) => updateField('is_international', e.target.checked)}
-                className="w-5 h-5 text-purple-600"
+                className="w-5 h-5 text-blue-500 rounded"
               />
-              <span className="text-sm font-medium text-gray-700">🌍 International</span>
+              <span className="text-sm font-medium text-white/80">🌍 International</span>
             </label>
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
                 checked={formData.is_online}
                 onChange={(e) => updateField('is_online', e.target.checked)}
-                className="w-5 h-5 text-purple-600"
+                className="w-5 h-5 text-blue-500 rounded"
               />
-              <span className="text-sm font-medium text-gray-700">💻 Online</span>
+              <span className="text-sm font-medium text-white/80">💻 Online</span>
             </label>
           </div>
         </div>
 
-        {/* Advanced Options (Collapsible) */}
+        {/* Advanced Options */}
         <button
           onClick={() => setShowAdvanced(!showAdvanced)}
-          className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+          className="text-sm text-blue-400 hover:text-blue-300 font-medium transition-colors"
         >
           {showAdvanced ? '▼ Hide' : '▶ Show'} Advanced Options
         </button>
 
         {showAdvanced && (
-          <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+          <div className="bg-white/5 border border-white/10 p-4 rounded-lg space-y-3">
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs text-gray-600 mb-1">Card Number (Last 4)</label>
+                <label className="block text-xs text-white/50 mb-1">Card Number (Last 4)</label>
                 <input
                   type="text"
                   maxLength="4"
                   value={formData.card_number}
                   onChange={(e) => updateField('card_number', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                  className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-md text-white text-sm focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
-                <label className="block text-xs text-gray-600 mb-1">Card Type</label>
+                <label className="block text-xs text-white/50 mb-1">Card Type</label>
                 <select
                   value={formData.card_type}
                   onChange={(e) => updateField('card_type', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                  className="w-full px-3 py-2 bg-slate-800 border border-white/20 rounded-md text-white text-sm focus:ring-2 focus:ring-blue-500"
                 >
                   {options.card_types && options.card_types.map(type => (
                     <option key={type} value={type}>{type}</option>
@@ -436,11 +425,11 @@ const SimplifiedTransactionForm = ({ onPredict, options }) => {
                 </select>
               </div>
               <div>
-                <label className="block text-xs text-gray-600 mb-1">Category</label>
+                <label className="block text-xs text-white/50 mb-1">Category</label>
                 <select
                   value={formData.merchant_category}
                   onChange={(e) => updateField('merchant_category', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                  className="w-full px-3 py-2 bg-slate-800 border border-white/20 rounded-md text-white text-sm focus:ring-2 focus:ring-blue-500"
                 >
                   {options.merchant_categories && options.merchant_categories.map(cat => (
                     <option key={cat} value={cat}>{cat}</option>
@@ -448,23 +437,23 @@ const SimplifiedTransactionForm = ({ onPredict, options }) => {
                 </select>
               </div>
               <div>
-                <label className="block text-xs text-gray-600 mb-1">Location</label>
+                <label className="block text-xs text-white/50 mb-1">Location</label>
                 <input
                   type="text"
                   value={formData.location_city}
                   onChange={(e) => updateField('location_city', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                  className="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-md text-white text-sm focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
           </div>
         )}
 
-        {/* Action Buttons */}
+        {/* Submit */}
         <button
           onClick={handleSubmit}
           disabled={loading}
-          className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-4 rounded-lg hover:from-blue-700 hover:to-indigo-700 disabled:from-gray-400 disabled:to-gray-500 transition-all font-semibold text-lg shadow-lg flex items-center justify-center gap-2"
+          className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-blue-900 disabled:text-blue-400 text-white py-3 px-4 rounded-lg transition-all font-semibold text-lg flex items-center justify-center gap-2 border border-blue-500/30"
         >
           {loading ? 'Analyzing...' : 'Analyze Transaction'}
           <Target className="w-5 h-5" />
@@ -486,43 +475,44 @@ const PredictionResult = ({ result }) => {
   const isFraud = Boolean(result.is_fraud);
   const confidence = result.confidence ?? 'UNKNOWN';
 
-  const riskColor = isFraud ? 'text-red-600' : 'text-green-600';
-  const bgColor = isFraud ? 'bg-red-50' : 'bg-green-50';
-  const borderColor = isFraud ? 'border-red-300' : 'border-green-300';
-  const Icon = isFraud ? AlertCircle : CheckCircle;
-
   const fraudPct = (fraudProb * 100) || 0;
 
   return (
-    <div className={`${bgColor} rounded-lg shadow-lg p-6 border-2 ${borderColor} animate-fadeIn`}>
+    <div className={`rounded-xl border p-6 ${
+      isFraud
+        ? 'bg-red-500/10 border-red-500/30'
+        : 'bg-green-500/10 border-green-500/30'
+    }`}>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-2xl font-bold text-gray-800">Analysis Result</h2>
-        <Icon className={`w-10 h-10 ${riskColor} animate-pulse`} />
+        <h2 className="text-2xl font-bold text-white">Analysis Result</h2>
+        {isFraud
+          ? <AlertCircle className="w-10 h-10 text-red-400 animate-pulse" />
+          : <CheckCircle className="w-10 h-10 text-green-400 animate-pulse" />
+        }
       </div>
 
       {/* Main Status */}
-      <div className={`${isFraud ? 'bg-red-100' : 'bg-green-100'} p-6 rounded-lg mb-4 text-center`}>
-        <p className="text-sm text-gray-600 mb-2">Transaction Status</p>
-        <p className={`text-4xl font-bold ${riskColor}`}>
+      <div className={`p-6 rounded-lg mb-4 text-center border ${
+        isFraud ? 'bg-red-500/20 border-red-500/30' : 'bg-green-500/20 border-green-500/30'
+      }`}>
+        <p className="text-sm text-white/60 mb-2">Transaction Status</p>
+        <p className={`text-4xl font-bold ${isFraud ? 'text-red-400' : 'text-green-400'}`}>
           {isFraud ? '🚨 FRAUDULENT' : '✅ LEGITIMATE'}
         </p>
-        <p className={`text-lg font-semibold mt-2 ${riskColor}`}>
+        <p className={`text-lg font-semibold mt-2 ${isFraud ? 'text-red-300' : 'text-green-300'}`}>
           {confidence} Risk Level
         </p>
       </div>
 
-      {/* Metrics Grid */}
+      {/* Metrics */}
       <div className="grid grid-cols-2 gap-3 mb-4">
-        <div className="bg-white p-4 rounded-md shadow-sm">
-          <p className="text-xs text-gray-600 mb-1">Fraud Probability</p>
-          <p className="text-2xl font-bold text-gray-800">
-            {fraudPct.toFixed(1)}%
-          </p>
+        <div className="bg-white/5 border border-white/10 p-4 rounded-md">
+          <p className="text-xs text-white/50 mb-1">Fraud Probability</p>
+          <p className="text-2xl font-bold text-white">{fraudPct.toFixed(1)}%</p>
         </div>
-
-        <div className="bg-white p-4 rounded-md shadow-sm">
-          <p className="text-xs text-gray-600 mb-1">Risk Score</p>
-          <p className="text-2xl font-bold text-gray-800">
+        <div className="bg-white/5 border border-white/10 p-4 rounded-md">
+          <p className="text-xs text-white/50 mb-1">Risk Score</p>
+          <p className="text-2xl font-bold text-white">
             {Number.isFinite(riskScore) ? riskScore.toFixed(0) : '0'}/100
           </p>
         </div>
@@ -530,31 +520,31 @@ const PredictionResult = ({ result }) => {
 
       {/* Transaction Summary */}
       {result.transaction_summary && (
-        <div className="bg-white p-4 rounded-md mb-4 text-sm">
-          <p className="font-semibold text-gray-700 mb-2">Transaction Details:</p>
-          <div className="space-y-1 text-gray-600">
-            <p>💰 <span className="font-medium">Amount:</span> ${result.transaction_summary.amount ?? '-'}</p>
-            <p>🏪 <span className="font-medium">Merchant:</span> {result.transaction_summary.merchant ?? '-'}</p>
-            <p>📍 <span className="font-medium">Location:</span> {result.transaction_summary.location ?? '-'}</p>
-            <p>💳 <span className="font-medium">Card:</span> {result.transaction_summary.card_type ?? '-'}</p>
-            <p>🌐 <span className="font-medium">Type:</span> {result.transaction_summary.is_online ? 'Online' : 'In-Person'}</p>
+        <div className="bg-white/5 border border-white/10 p-4 rounded-md mb-4 text-sm">
+          <p className="font-semibold text-white/80 mb-2">Transaction Details:</p>
+          <div className="space-y-1 text-white/60">
+            <p>💰 <span className="font-medium text-white/80">Amount:</span> ${result.transaction_summary.amount ?? '-'}</p>
+            <p>🏪 <span className="font-medium text-white/80">Merchant:</span> {result.transaction_summary.merchant ?? '-'}</p>
+            <p>📍 <span className="font-medium text-white/80">Location:</span> {result.transaction_summary.location ?? '-'}</p>
+            <p>💳 <span className="font-medium text-white/80">Card:</span> {result.transaction_summary.card_type ?? '-'}</p>
+            <p>🌐 <span className="font-medium text-white/80">Type:</span> {result.transaction_summary.is_online ? 'Online' : 'In-Person'}</p>
           </div>
         </div>
       )}
 
       {/* Progress Bar */}
-      <div className="bg-white p-4 rounded-md">
-        <div className="w-full bg-gray-200 rounded-full h-6 mb-2">
+      <div className="bg-white/5 border border-white/10 p-4 rounded-md">
+        <div className="w-full bg-white/10 rounded-full h-6 mb-2">
           <div
             className={`h-6 rounded-full transition-all duration-1000 flex items-center justify-center text-white text-xs font-bold ${
-              isFraud ? 'bg-red-600' : 'bg-green-600'
+              isFraud ? 'bg-red-500' : 'bg-green-500'
             }`}
             style={{ width: `${Math.max(fraudPct, 5)}%` }}
           >
             {fraudPct.toFixed(1)}%
           </div>
         </div>
-        <p className="text-xs text-gray-600 text-center">
+        <p className="text-xs text-white/40 text-center">
           Detection Threshold: {((result.details?.threshold ?? 0.5) * 100).toFixed(1)}%
         </p>
       </div>
@@ -571,30 +561,30 @@ const StatsDashboard = ({ stats }) => {
 
   return (
     <div className="grid grid-cols-4 gap-4 mb-6">
-      <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg border border-blue-200 shadow-sm">
-        <Database className="w-6 h-6 text-blue-600 mb-2" />
-        <p className="text-3xl font-bold text-blue-900">{stats.total_transactions}</p>
-        <p className="text-sm text-blue-700 font-medium">Total Tests</p>
+      <div className="bg-white/5 border border-white/10 p-4 rounded-lg hover:border-blue-500/30 transition-colors">
+        <Database className="w-6 h-6 text-blue-400 mb-2" />
+        <p className="text-3xl font-bold text-white">{stats.total_transactions}</p>
+        <p className="text-sm text-white/50 font-medium">Total Tests</p>
       </div>
 
-      <div className="bg-gradient-to-br from-red-50 to-red-100 p-4 rounded-lg border border-red-200 shadow-sm">
-        <AlertCircle className="w-6 h-6 text-red-600 mb-2" />
-        <p className="text-3xl font-bold text-red-900">{stats.fraudulent_transactions}</p>
-        <p className="text-sm text-red-700 font-medium">Detected Fraud</p>
+      <div className="bg-white/5 border border-white/10 p-4 rounded-lg hover:border-red-500/30 transition-colors">
+        <AlertCircle className="w-6 h-6 text-red-400 mb-2" />
+        <p className="text-3xl font-bold text-red-400">{stats.fraudulent_transactions}</p>
+        <p className="text-sm text-white/50 font-medium">Detected Fraud</p>
       </div>
 
-      <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg border border-green-200 shadow-sm">
-        <CheckCircle className="w-6 h-6 text-green-600 mb-2" />
-        <p className="text-3xl font-bold text-green-900">{stats.legitimate_transactions}</p>
-        <p className="text-sm text-green-700 font-medium">Legitimate</p>
+      <div className="bg-white/5 border border-white/10 p-4 rounded-lg hover:border-green-500/30 transition-colors">
+        <CheckCircle className="w-6 h-6 text-green-400 mb-2" />
+        <p className="text-3xl font-bold text-green-400">{stats.legitimate_transactions}</p>
+        <p className="text-sm text-white/50 font-medium">Legitimate</p>
       </div>
 
-      <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg border border-purple-200 shadow-sm">
-        <TrendingUp className="w-6 h-6 text-purple-600 mb-2" />
-        <p className="text-3xl font-bold text-purple-900">
+      <div className="bg-white/5 border border-white/10 p-4 rounded-lg hover:border-purple-500/30 transition-colors">
+        <TrendingUp className="w-6 h-6 text-purple-400 mb-2" />
+        <p className="text-3xl font-bold text-purple-400">
           {(stats.fraud_rate * 100).toFixed(1)}%
         </p>
-        <p className="text-sm text-purple-700 font-medium">Fraud Rate</p>
+        <p className="text-sm text-white/50 font-medium">Fraud Rate</p>
       </div>
     </div>
   );
@@ -620,12 +610,12 @@ const TransactionHistory = ({ transactions, onDelete, onRefresh }) => {
     );
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
+    <div className="bg-white/5 border border-white/10 rounded-xl p-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-2xl font-bold text-gray-800">Test History</h2>
+        <h2 className="text-2xl font-bold text-white">Test History</h2>
         <button
           onClick={onRefresh}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-md transition-colors text-sm font-medium"
         >
           Refresh
         </button>
@@ -633,20 +623,20 @@ const TransactionHistory = ({ transactions, onDelete, onRefresh }) => {
 
       <div className="flex gap-4 mb-4">
         <div className="flex-1 relative">
-          <Search className="absolute left-3 top-2.5 w-5 h-5 text-gray-400" />
+          <Search className="absolute left-3 top-2.5 w-5 h-5 text-white/30" />
           <input
             type="text"
             placeholder="Search..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+            className="w-full pl-10 pr-4 py-2 bg-white/10 border border-white/20 rounded-md text-white placeholder-white/30 focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
         <select
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+          className="px-4 py-2 bg-slate-800 border border-white/20 rounded-md text-white focus:ring-2 focus:ring-blue-500"
         >
           <option value="all">All Tests</option>
           <option value="fraud">Fraud Only</option>
@@ -656,46 +646,46 @@ const TransactionHistory = ({ transactions, onDelete, onRefresh }) => {
 
       <div className="overflow-x-auto">
         <table className="w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Merchant</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Result</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Confidence</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tested By</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
+          <thead>
+            <tr className="border-b border-white/10">
+              <th className="px-4 py-3 text-left text-xs font-medium text-white/40 uppercase">ID</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-white/40 uppercase">Merchant</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-white/40 uppercase">Amount</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-white/40 uppercase">Result</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-white/40 uppercase">Confidence</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-white/40 uppercase">Tested By</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-white/40 uppercase">Date</th>
+              <th className="px-4 py-3 text-left text-xs font-medium text-white/40 uppercase">Action</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200">
+          <tbody className="divide-y divide-white/5">
             {filteredTransactions.map(t => (
-              <tr key={t.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3 text-sm font-mono">#{t.id}</td>
-                <td className="px-4 py-3 text-sm">{t.merchant_name}</td>
-                <td className="px-4 py-3 text-sm font-semibold">${t.transaction_amount.toFixed(2)}</td>
+              <tr key={t.id} className="hover:bg-white/5 transition-colors">
+                <td className="px-4 py-3 text-sm font-mono text-white/60">#{t.id}</td>
+                <td className="px-4 py-3 text-sm text-white/80">{t.merchant_name}</td>
+                <td className="px-4 py-3 text-sm font-semibold text-white">${t.transaction_amount.toFixed(2)}</td>
                 <td className="px-4 py-3">
                   <span className={`px-3 py-1 text-xs font-bold rounded-full ${
                     t.is_fraud
-                      ? 'bg-red-100 text-red-800'
-                      : 'bg-green-100 text-green-800'
+                      ? 'bg-red-500/20 text-red-300 border border-red-500/30'
+                      : 'bg-green-500/20 text-green-300 border border-green-500/30'
                   }`}>
                     {t.is_fraud ? '🚨 FRAUD' : '✅ SAFE'}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-sm">
+                <td className="px-4 py-3 text-sm text-white/60">
                   {(t.fraud_probability * 100).toFixed(1)}%
                 </td>
-                <td className="px-4 py-3 text-sm text-gray-700 font-medium">
+                <td className="px-4 py-3 text-sm text-white/70 font-medium">
                   {t.created_by_username || 'Unknown'}
                 </td>
-                <td className="px-4 py-3 text-xs text-gray-500">
+                <td className="px-4 py-3 text-xs text-white/40">
                   {new Date(t.created_at).toLocaleString()}
                 </td>
                 <td className="px-4 py-3">
                   <button
                     onClick={() => onDelete(t.id)}
-                    className="text-red-600 hover:text-red-800 transition-colors"
+                    className="text-red-400 hover:text-red-300 transition-colors"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -707,14 +697,14 @@ const TransactionHistory = ({ transactions, onDelete, onRefresh }) => {
       </div>
 
       {filteredTransactions.length === 0 && (
-        <p className="text-center text-gray-500 py-8">No tests found</p>
+        <p className="text-center text-white/30 py-8">No tests found</p>
       )}
     </div>
   );
 };
 
 // ============================================================================
-// Main Dashboard Component (with Authentication)
+// Main Dashboard Component
 // ============================================================================
 
 const Dashboard = () => {
@@ -801,23 +791,24 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900">
       <div className="max-w-7xl mx-auto p-6">
+
         {/* Header */}
-        <div className="bg-white rounded-lg shadow-xl p-6 mb-6 border-t-4 border-blue-600">
+        <div className="bg-white/5 border border-white/10 rounded-xl p-6 mb-6 border-t-4 border-blue-500">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Shield className="w-12 h-12 text-blue-600" />
+              <Shield className="w-12 h-12 text-blue-400" />
               <div>
-                <h1 className="text-3xl font-bold text-gray-800">
+                <h1 className="text-3xl font-bold text-white">
                   Fraud Detection System
                 </h1>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-blue-300">
                   Welcome, {user?.username}! | KNN Algorithm 🎯
                 </p>
               </div>
             </div>
-            <Activity className="w-10 h-10 text-green-500 animate-pulse" />
+            <Activity className="w-10 h-10 text-green-400 animate-pulse" />
           </div>
         </div>
 
@@ -825,24 +816,24 @@ const Dashboard = () => {
         {statistics && <StatsDashboard stats={statistics} />}
 
         {/* Tabs */}
-        <div className="bg-white rounded-lg shadow-md mb-6 p-1">
+        <div className="bg-white/5 border border-white/10 rounded-xl mb-6 p-1">
           <div className="flex gap-2">
             <button
               onClick={() => setActiveTab('predict')}
-              className={`flex-1 py-3 px-4 rounded-md font-semibold transition-all ${
+              className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all ${
                 activeTab === 'predict'
-                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg'
-                  : 'text-gray-600 hover:bg-gray-100'
+                  ? 'bg-blue-600 text-white shadow-lg'
+                  : 'text-white/60 hover:bg-white/5 hover:text-white'
               }`}
             >
               🎯 Test Transaction
             </button>
             <button
               onClick={() => setActiveTab('history')}
-              className={`flex-1 py-3 px-4 rounded-md font-semibold transition-all ${
+              className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all ${
                 activeTab === 'history'
-                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg'
-                  : 'text-gray-600 hover:bg-gray-100'
+                  ? 'bg-blue-600 text-white shadow-lg'
+                  : 'text-white/60 hover:bg-white/5 hover:text-white'
               }`}
             >
               📊 Test History
@@ -884,7 +875,7 @@ const Dashboard = () => {
 
 const AdminPage = () => {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900">
       <AdminDashboard />
     </div>
   );
@@ -899,19 +890,14 @@ const AppContent = () => {
 
   return (
     <>
-      {/* NavBar is shown on every page — it adapts based on login state */}
       <NavBar />
-
       <Routes>
-        {/* ── PUBLIC ROUTES (no login required) ── */}
         <Route path="/"        element={<HomePage />} />
         <Route path="/about"   element={<AboutPage />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/login"   element={
           isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage />
         } />
-
-        {/* ── PROTECTED ROUTES (login required) ── */}
         <Route
           path="/dashboard"
           element={
@@ -928,8 +914,6 @@ const AppContent = () => {
             </ProtectedRoute>
           }
         />
-
-        {/* Catch-all → back to Home */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>

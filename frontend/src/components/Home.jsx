@@ -20,10 +20,16 @@ export default function Home() {
           patterns to identify suspicious credit card activity in real time.
         </p>
         <div className="flex justify-center gap-4 flex-wrap">
-          <Link to="/login" className="px-6 py-3 bg-blue-600 hover:bg-blue-500 rounded-lg font-bold transition-colors shadow-lg">
+          <Link
+            to="/login"
+            className="px-6 py-3 bg-blue-600 hover:bg-blue-500 rounded-lg font-bold transition-colors shadow-lg"
+          >
             Get Started →
           </Link>
-          <Link to="/about" className="px-6 py-3 border border-white/20 hover:border-blue-400 hover:text-blue-300 rounded-lg font-semibold transition-colors">
+          <Link
+            to="/about"
+            className="px-6 py-3 border border-white/20 hover:border-blue-400 hover:text-blue-300 rounded-lg font-semibold transition-colors"
+          >
             Learn More
           </Link>
         </div>
@@ -64,11 +70,14 @@ export default function Home() {
             { icon: <BarChart2 className="w-5 h-5 text-blue-400" />, title: 'Model Insights',       desc: 'Admin dashboard shows precision, recall, and confusion matrix metrics.' },
             { icon: <Database className="w-5 h-5 text-blue-400" />,  title: 'Transaction History',  desc: 'Full audit trail of every analyzed transaction stored in the database.' },
           ].map(f => (
-            <div key={f.title} className="bg-white/5 border border-white/10 rounded-xl p-5 hover:border-blue-500/40 hover:bg-blue-500/5 transition-all">
+            <div
+              key={f.title}
+              className="bg-white/5 border border-white/10 rounded-xl p-5 hover:border-blue-500/40 hover:bg-blue-500/5 transition-all"
+            >
               <div className="w-10 h-10 rounded-lg bg-blue-500/15 border border-blue-500/20 flex items-center justify-center mb-4">
                 {f.icon}
               </div>
-              <h3 className="font-bold text-sm mb-2">{f.title}</h3>
+              <h3 className="font-bold text-sm mb-2 text-white">{f.title}</h3>
               <p className="text-white/45 text-xs leading-relaxed">{f.desc}</p>
             </div>
           ))}
@@ -79,14 +88,17 @@ export default function Home() {
       <section className="text-center py-16 border-t border-white/10">
         <h2 className="text-2xl font-extrabold mb-3">Ready to Detect Fraud?</h2>
         <p className="text-white/50 text-sm mb-6">Log in to access the dashboard and start analyzing transactions.</p>
-        <Link to="/login" className="px-6 py-3 bg-blue-600 hover:bg-blue-500 rounded-lg font-bold transition-colors">
+        <Link
+          to="/login"
+          className="px-6 py-3 bg-blue-600 hover:bg-blue-500 rounded-lg font-bold transition-colors"
+        >
           Login to Dashboard →
         </Link>
       </section>
 
       {/* Footer */}
       <footer className="text-center py-6 border-t border-white/10 text-white/30 text-xs">
-        Credit Card Fraud Detection · KNN Algorithm ·Project
+        Credit Card Fraud Detection · KNN Algorithm · Project
       </footer>
     </div>
   );
