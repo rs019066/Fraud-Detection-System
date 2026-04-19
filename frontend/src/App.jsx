@@ -8,7 +8,7 @@ import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   AlertCircle, CheckCircle, TrendingUp, Shield, Activity, Database,
-  Trash2, Search, Zap, Target, LogOut, Home, Users
+  Trash2, Search, Zap, Target, LogOut, Home, Users, BarChart2
 } from 'lucide-react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import LoginPage from './components/LoginPage';
@@ -16,6 +16,7 @@ import AdminDashboard from './components/AdminDashboard';
 import HomePage from './components/Home';
 import AboutPage from './components/About';
 import ContactPage from './components/Contact';
+import VisualizationPage from './components/VisualizationPage';
 
 const API_URL = 'http://localhost:8000';
 
@@ -161,6 +162,20 @@ const NavBar = () => {
                     <Home className="h-4 w-4" />
                     Dashboard
                   </Link>
+
+                  {/* ── NEW: Visualization link ── */}
+                  <Link
+                    to="/visualization"
+                    className={`inline-flex items-center gap-1 px-1 pt-1 text-sm font-medium border-b-2 transition-colors ${
+                      location.pathname === '/visualization'
+                        ? 'border-blue-400 text-blue-300'
+                        : 'border-transparent text-white/60 hover:text-white hover:border-blue-400/50'
+                    }`}
+                  >
+                    <BarChart2 className="h-4 w-4" />
+                    Visualization
+                  </Link>
+
                   {isAdmin() && (
                     <Link
                       to="/admin"
@@ -903,6 +918,15 @@ const AppContent = () => {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        {/* ── NEW: Visualization route ── */}
+        <Route
+          path="/visualization"
+          element={
+            <ProtectedRoute>
+              <VisualizationPage />
             </ProtectedRoute>
           }
         />

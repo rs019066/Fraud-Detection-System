@@ -16,6 +16,7 @@ import numpy as np
 import pandas as pd
 import joblib
 import json
+import asyncio
 from pathlib import Path
 import hashlib
 import traceback
@@ -32,10 +33,13 @@ from services.fraud_scorer import RuleBasedFraudScorer, create_fraud_scorer
 from auth.routes import router as auth_router
 from auth.dependencies import get_current_user, require_admin
 
+# ── NEW: Visualization router + WebSocket log manager ────────────────────────
+from visualization_routes import visualization_router, log_manager
+
 # ===================================================
 #    DATABASE SETUP (using Config)
 # ===================================================
-SQLALCHEMY_DATABASE_URL = Config.DATABASE_URL  # Now uses centralized config
+SQLALCHEMY_DATABASE_URL = Config.DATABASE_URL
 engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
@@ -59,8 +63,8 @@ class TransactionDB(Base):
     is_fraud = Column(Boolean)
     fraud_probability = Column(Float)
     risk_score = Column(Float)
-    created_by_user_id = Column(Integer, nullable=True)  # Track which user created this transaction
-    created_by_username = Column(String, nullable=True)  # For easier querying
+    created_by_user_id = Column(Integer, nullable=True)
+    created_by_username = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
 class UserDB(Base):
@@ -77,7 +81,6 @@ class UserDB(Base):
     last_login = Column(DateTime, nullable=True)
 
     def to_dict(self):
-        """Convert user to dictionary for API responses"""
         return {
             "id": self.id,
             "username": self.username,
@@ -148,20 +151,11 @@ class TransactionResponse(BaseModel):
     created_at: datetime
 
 # ===================================================
-#    IMPROVED FEATURE MAPPING (Refactored to use FraudScorer)
+#    IMPROVED FEATURE MAPPING
 # ===================================================
 class ImprovedFeatureMapper:
-    """
-    Maps raw transaction data to 28 V-features for ML model.
-
-    Demonstrates OOP refactoring:
-    - Fraud scoring logic extracted to services/fraud_scorer.py
-    - Uses dependency injection (class-level fraud_scorer)
-    - Easier to test (can mock fraud_scorer)
-    """
-
-    # Class-level fraud scorer instance (dependency injection)
     fraud_scorer = create_fraud_scorer("rule_based")
+
     @staticmethod
     def hash_to_float(text: str, seed: int = 0) -> float:
         try:
@@ -169,77 +163,60 @@ class ImprovedFeatureMapper:
             return ((hash_val % 6000) / 1000) - 3
         except Exception:
             return 0.0
-    
+
     @staticmethod
     def calculate_fraud_score(transaction: RealTransaction) -> float:
-        """
-        Calculate fraud score using the fraud scorer service.
-
-        Demonstrates separation of concerns - fraud scoring logic is now in
-        services/fraud_scorer.py instead of inline here.
-
-        Benefits:
-        - Easier to test (mock the fraud_scorer)
-        - Easier to swap algorithms (rule-based vs ML-based)
-        - Follows Single Responsibility Principle
-        - Configuration managed centrally in config.py
-        """
         return ImprovedFeatureMapper.fraud_scorer.calculate_score(transaction)
-    
+
     @staticmethod
     def map_to_v_features(transaction: RealTransaction) -> Dict:
         try:
             fraud_score = ImprovedFeatureMapper.calculate_fraud_score(transaction)
             amount = transaction.transaction_amount
             hour = transaction.transaction_hour
-            
+
             amount_log = np.log1p(amount)
             amount_norm = amount_log / 10
-            
+
             v_features = {}
-            
+
             v_features['V1'] = amount_norm * (2 if fraud_score > 0.5 else -1) * (1 + fraud_score)
             v_features['V2'] = amount_norm * np.sin(hour * np.pi / 12) * (1 + fraud_score * 2)
             v_features['V3'] = amount_norm * np.cos(hour * np.pi / 12) * (1 + fraud_score * 2)
             v_features['V4'] = (amount / 1000) * (2 if transaction.is_international else -1) * (1 + fraud_score)
-            
             v_features['V5'] = (transaction.distance_from_home / 100) * (1 + fraud_score * 3)
             v_features['V6'] = fraud_score * 5 if transaction.is_international else -fraud_score * 2
             v_features['V7'] = ImprovedFeatureMapper.hash_to_float(transaction.merchant_category) * (1 + fraud_score)
             v_features['V8'] = ImprovedFeatureMapper.hash_to_float(transaction.location_city) * (1 + fraud_score)
-            
             v_features['V9'] = (1 if hour < 6 else -1) * amount_norm * (1 + fraud_score * 2)
             v_features['V10'] = np.sqrt(amount) * (2 if transaction.is_international else -1) * (1 + fraud_score)
             v_features['V11'] = (transaction.distance_from_home / 100) * (1 + fraud_score * 2)
             v_features['V12'] = fraud_score * 4 - 2
-            
             v_features['V13'] = np.sin(hour * 2 * np.pi / 24) * amount_norm * (1 + fraud_score * 2)
             v_features['V14'] = np.cos(hour * 2 * np.pi / 24) * amount_norm * (1 + fraud_score * 2)
             v_features['V15'] = (transaction.day_of_week / 7) * (2 if fraud_score > 0.4 else -1)
             v_features['V16'] = (2 if hour < 6 or hour > 22 else -1) * amount_norm * (1 + fraud_score * 3)
             v_features['V17'] = amount_norm * (2 if transaction.is_online else -1) * (1 + fraud_score)
-            
+
             card_hash = ImprovedFeatureMapper.hash_to_float(transaction.card_number)
             merchant_hash = ImprovedFeatureMapper.hash_to_float(transaction.merchant_name)
-            
+
             v_features['V18'] = card_hash * amount_norm * (1 + fraud_score * 2)
             v_features['V19'] = merchant_hash * (1 + fraud_score * 3)
             v_features['V20'] = (2 if transaction.is_online and amount > 1000 else -1) * fraud_score * 3
             v_features['V21'] = (transaction.distance_from_home / 500) * amount_norm * (1 + fraud_score * 3)
             v_features['V22'] = fraud_score * 5 - 2.5
             v_features['V23'] = (amount / 100) * (3 if hour in [2, 3, 4] else -1) * (1 + fraud_score * 2)
-            
             v_features['V24'] = fraud_score * amount_norm * 4
             v_features['V25'] = (transaction.distance_from_home / 100) * (1 + fraud_score * 4)
             v_features['V26'] = (3 if amount > 1000 and transaction.is_international else -2) * (1 + fraud_score)
             v_features['V27'] = np.sqrt(amount) * (2 if transaction.is_international else -1) * (1 + fraud_score * 3)
             v_features['V28'] = fraud_score * 6 - 3
-            
+
             return v_features
         except Exception as e:
             print(f"Error in map_to_v_features: {e}")
             traceback.print_exc()
-            # Return default features
             return {f'V{i}': 0.0 for i in range(1, 29)}
 
 # ===================================================
@@ -252,26 +229,26 @@ class FeatureEngineer:
             df = pd.DataFrame([v_features])
             df['Time'] = real_transaction.transaction_hour * 3600
             df['Amount'] = real_transaction.transaction_amount
-            
+
             df['V1_V2'] = df['V1'] * df['V2']
             df['V1_V3'] = df['V1'] * df['V3']
             df['V4_V12'] = df['V4'] * df['V12']
             df['V10_V14'] = df['V10'] * df['V14']
             df['V4_V17'] = df['V4'] * df['V17']
-            
+
             for i in [1, 2, 3, 4, 10, 12, 14, 17]:
                 df[f'V{i}_squared'] = df[f'V{i}'] ** 2
-            
+
             df['Amount_log'] = np.log1p(df['Amount'])
             df['Amount_sqrt'] = np.sqrt(df['Amount'])
             df['Amount_squared'] = df['Amount'] ** 2
-            
+
             df['Time_hour'] = (df['Time'] / 3600) % 24
             df['Time_sin'] = np.sin(2 * np.pi * df['Time_hour'] / 24)
             df['Time_cos'] = np.cos(2 * np.pi * df['Time_hour'] / 24)
             time_bins = pd.cut(df['Time_hour'], bins=[0, 6, 12, 18, 24], labels=[0, 1, 2, 3])
             df['Time_of_day'] = pd.to_numeric(time_bins, errors='coerce').fillna(0).astype(int)
-            
+
             v_cols = [f'V{i}' for i in range(1, 29)]
             df['V_sum'] = df[v_cols].sum(axis=1)
             df['V_mean'] = df[v_cols].mean(axis=1)
@@ -279,26 +256,20 @@ class FeatureEngineer:
             df['V_max'] = df[v_cols].max(axis=1)
             df['V_min'] = df[v_cols].min(axis=1)
             df['V_range'] = df['V_max'] - df['V_min']
-            
+
             df['Amount_to_V_sum'] = df['Amount'] / (df['V_sum'].abs() + 1)
-            
+
             df = df.fillna(0)
             df = df.replace([np.inf, -np.inf], 0)
-            
+
             return df
         except Exception as e:
             print(f"Error in create_features: {e}")
             traceback.print_exc()
             raise
-    
+
     @staticmethod
     def get_risk_level(probability: float) -> str:
-        """
-        Classify fraud probability into human-readable risk levels.
-
-        Now uses Config.RISK_THRESHOLDS instead of hardcoded values.
-        Demonstrates centralized configuration management.
-        """
         thresholds = Config.RISK_THRESHOLDS
 
         if probability >= thresholds["critical"]:
@@ -316,13 +287,7 @@ class FeatureEngineer:
 #    MODEL SERVICE
 # ===================================================
 class ModelService:
-    """
-    Service for loading and managing the fraud detection ML model.
-
-    Now uses Config for paths and thresholds (demonstrates dependency on config).
-    """
     def __init__(self, model_dir: str = None):
-        # Use Config.MODEL_DIR if not specified
         model_dir = model_dir or Config.MODEL_DIR
         self.model_dir = Path(model_dir)
         self.model = None
@@ -330,43 +295,42 @@ class ModelService:
         self.feature_names = None
         self.config = None
         self.load_model()
-    
+
     def load_model(self):
         try:
             self.model = joblib.load(self.model_dir / 'model.pkl')
             self.scaler = joblib.load(self.model_dir / 'scaler.pkl')
             self.feature_names = joblib.load(self.model_dir / 'features.pkl')
-            
+
             with open(self.model_dir / 'model_config.json', 'r') as f:
                 self.config = json.load(f)
-            
+
             print("✅ Model loaded successfully!")
             print(f"   Features required: {len(self.feature_names)}")
         except Exception as e:
             print(f"❌ Error loading model: {e}")
             traceback.print_exc()
             raise
-    
+
     def predict(self, real_transaction: RealTransaction) -> Dict:
         try:
             v_features = ImprovedFeatureMapper.map_to_v_features(real_transaction)
             df = FeatureEngineer.create_features(v_features, real_transaction)
-            
-            # Ensure all features exist
+
             for feature in self.feature_names:
                 if feature not in df.columns:
                     df[feature] = 0
-            
+
             df = df[self.feature_names]
             X_scaled = self.scaler.transform(df)
-            
+
             fraud_prob = float(self.model.predict_proba(X_scaled)[0][1])
             threshold = self.config.get('threshold', 0.5) * 0.8
             is_fraud = fraud_prob >= threshold
-            
+
             risk_score = min(100, fraud_prob * 120)
             confidence = FeatureEngineer.get_risk_level(fraud_prob)
-            
+
             return {
                 'is_fraud': bool(is_fraud),
                 'fraud_probability': float(fraud_prob),
@@ -418,27 +382,19 @@ class TransactionRepository:
 
     @staticmethod
     def get_all(db: Session, skip: int = 0, limit: int = 100, user_id: int = None, role: str = None) -> List[TransactionDB]:
-        """
-        Get transactions with role-based filtering:
-        - Admins see ALL transactions
-        - Analysts see ONLY their own transactions
-        """
         try:
             query = db.query(TransactionDB)
-
-            # Filter by user_id for analysts (admins see all)
             if role == "analyst" and user_id is not None:
                 query = query.filter(TransactionDB.created_by_user_id == user_id)
-
             return query.order_by(TransactionDB.created_at.desc()).offset(skip).limit(limit).all()
         except Exception as e:
             print(f"Database query error: {e}")
             return []
-    
+
     @staticmethod
     def get_by_id(db: Session, transaction_id: int) -> Optional[TransactionDB]:
         return db.query(TransactionDB).filter(TransactionDB.id == transaction_id).first()
-    
+
     @staticmethod
     def delete(db: Session, transaction_id: int) -> bool:
         transaction = db.query(TransactionDB).filter(TransactionDB.id == transaction_id).first()
@@ -447,18 +403,11 @@ class TransactionRepository:
             db.commit()
             return True
         return False
-    
+
     @staticmethod
     def get_statistics(db: Session, user_id: int = None, role: str = None) -> Dict:
-        """
-        Get statistics with role-based filtering:
-        - Admins see ALL transaction statistics
-        - Analysts see ONLY their own transaction statistics
-        """
         try:
             query = db.query(TransactionDB)
-
-            # Filter by user_id for analysts (admins see all)
             if role == "analyst" and user_id is not None:
                 query = query.filter(TransactionDB.created_by_user_id == user_id)
 
@@ -497,20 +446,19 @@ app = FastAPI(
     version="3.1.0"
 )
 
-# CORS Configuration (from Config)
+# CORS Configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=Config.CORS_ORIGINS,  # Now configurable via environment variable
+    allow_origins=Config.CORS_ORIGINS,
     allow_credentials=Config.CORS_ALLOW_CREDENTIALS,
     allow_methods=Config.CORS_ALLOW_METHODS,
     allow_headers=Config.CORS_ALLOW_HEADERS,
 )
 
-# Include authentication router
+# Include routers
 app.include_router(auth_router)
-
-# Include messages router
 app.include_router(messages_router)
+app.include_router(visualization_router)   # ← NEW
 
 @app.get("/")
 async def root():
@@ -525,11 +473,10 @@ async def root():
 async def predict_transaction(
     transaction: RealTransaction,
     db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)  # Requires authentication
+    current_user: dict = Depends(get_current_user)
 ):
     try:
         prediction = model_service.predict(transaction)
-        # Save transaction with user tracking
         db_transaction = TransactionRepository.create(
             db,
             transaction,
@@ -537,6 +484,23 @@ async def predict_transaction(
             user_id=current_user.get("user_id"),
             username=current_user.get("username")
         )
+
+         # ── Broadcast to real-time log ────────────────────────────────────
+        try:
+            await log_manager.broadcast({
+                "id":          db_transaction.id,
+                "timestamp":   db_transaction.created_at.isoformat(),
+                "merchant":    transaction.merchant_name,
+                "amount":      transaction.transaction_amount,
+                "is_fraud":    prediction["is_fraud"],
+                "probability": round(prediction["fraud_probability"] * 100, 1),
+                "risk":        prediction["confidence"],
+                "user":        current_user.get("username"),
+                "city":        transaction.location_city,
+            })
+        except Exception as broadcast_err:
+            print(f"Broadcast warning (non-fatal): {broadcast_err}")
+        # ─────────────────────────────────────────────────────────────────
 
         return PredictionResponse(
             id=db_transaction.id,
@@ -569,18 +533,11 @@ async def get_transactions(
     skip: int = 0,
     limit: int = 100,
     db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)  # Requires authentication
+    current_user: dict = Depends(get_current_user)
 ):
-    """
-    Get transactions with role-based access control:
-    - Admins see ALL transactions
-    - Analysts see ONLY their own transactions
-    """
     try:
         return TransactionRepository.get_all(
-            db,
-            skip,
-            limit,
+            db, skip, limit,
             user_id=current_user.get("user_id"),
             role=current_user.get("role")
         )
@@ -599,7 +556,7 @@ async def get_transaction(transaction_id: int, db: Session = Depends(get_db)):
 async def delete_transaction(
     transaction_id: int,
     db: Session = Depends(get_db),
-    admin: dict = Depends(require_admin)  # Requires admin role
+    admin: dict = Depends(require_admin)
 ):
     success = TransactionRepository.delete(db, transaction_id)
     if not success:
@@ -609,13 +566,8 @@ async def delete_transaction(
 @app.get("/api/statistics")
 async def get_statistics(
     db: Session = Depends(get_db),
-    current_user: dict = Depends(get_current_user)  # Requires authentication
+    current_user: dict = Depends(get_current_user)
 ):
-    """
-    Get statistics with role-based access control:
-    - Admins see system-wide statistics (all transactions)
-    - Analysts see only their own transaction statistics
-    """
     return TransactionRepository.get_statistics(
         db,
         user_id=current_user.get("user_id"),
@@ -739,6 +691,7 @@ if __name__ == "__main__":
     print("   • Better error handling")
     print("   • Improved fraud detection")
     print("   • CORS properly configured")
+    print("   • Visualization & Real-Time Log endpoints")
     print("\n📡 Server: http://localhost:8000")
     print("="*60 + "\n")
     uvicorn.run(app, host="0.0.0.0", port=8000, reload=False)
